@@ -3,7 +3,7 @@ export interface Board{
     created_at : string;
     title : string;
     description: string | null;
-    color : string;
+    color : | string;
     user_id : string;
     updated_at : string;
 }
