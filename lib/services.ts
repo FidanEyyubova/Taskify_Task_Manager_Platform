@@ -1,8 +1,7 @@
-import { createClient } from "@/lib/supabase/client";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Board, Column } from "./supabase/models";
 
-const supabase = createClient();
+// const supabase = createClient();
 
 //BOARD SERVICES
 export const boardServices = {
@@ -51,7 +50,7 @@ export const columnServices = {
 
 //BOARD WITH DEFAULT COLUMNS
 export const boardDataServices = {
-  async createBoardWithDefaultColumns(boardData: {
+  async createBoardWithDefaultColumns(supabase : SupabaseClient, boardData: {
     title: string;
     description?: string;
     color?: string;
@@ -75,6 +74,7 @@ export const boardDataServices = {
         columnServices.createColumn(supabase, {
           ...column,
           board_id: board.id,
+          user_id : boardData.userId
         }),
       ),
     );
