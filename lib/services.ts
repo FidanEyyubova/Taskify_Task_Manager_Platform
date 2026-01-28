@@ -1,10 +1,19 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Board, Column } from "./supabase/models";
 
-// const supabase = createClient();
-
 //BOARD SERVICES
 export const boardServices = {
+  async getBoard(supabase: SupabaseClient, boardId: string): Promise<Board> {
+    const { data, error } = await supabase
+      .from("boards")
+      .select("*")
+      .eq("id", boardId)
+      .single();
+
+    if (error) throw error;
+
+    return data;
+  },
   async getBoards(supabase: SupabaseClient, userId: string): Promise<Board[]> {
     const { data, error } = await supabase
       .from("boards")
@@ -29,10 +38,40 @@ export const boardServices = {
 
     return data;
   },
+  async updateBoard(
+    supabase: SupabaseClient,
+    boardId: string,
+    updates: Partial<Board>,
+  ): Promise<Board> {
+    const { data, error } = await supabase
+      .from("boards")
+      .update({ ...updates, updated_at: new Date().toLocaleDateString() })
+      .eq("id", boardId)
+      .select()
+      .single();
+    if (error) throw error;
+
+    return data;
+  },
 };
 
 //COLUMN SERVICE
 export const columnServices = {
+  async getColumns(
+    supabase: SupabaseClient,
+    boardId: string,
+  ): Promise<Column[]> {
+    const { data, error } = await supabase
+      .from("columns")
+      .select("*")
+      .eq("board_id", boardId)
+      .order("sort_order", { ascending: false });
+
+    if (error) throw error;
+
+    return data || [];
+  },
+
   async createColumn(
     supabase: SupabaseClient,
     column: Omit<Column, "id" | "created_at">,
@@ -50,12 +89,27 @@ export const columnServices = {
 
 //BOARD WITH DEFAULT COLUMNS
 export const boardDataServices = {
-  async createBoardWithDefaultColumns(supabase : SupabaseClient, boardData: {
-    title: string;
-    description?: string;
-    color?: string;
-    userId: string;
-  }) {
+  async getBoardWithColumns(supabase: SupabaseClient, boardId: string) {
+    const [board, column] = await Promise.all([
+      boardServices.getBoard(supabase, boardId),
+      columnServices.getColumns(supabase, boardId),
+    ]);
+    if (!board) throw new Error("Board not found");
+    return {
+      board,
+      column,
+    };
+  },
+
+  async createBoardWithDefaultColumns(
+    supabase: SupabaseClient,
+    boardData: {
+      title: string;
+      description?: string;
+      color?: string;
+      userId: string;
+    },
+  ) {
     const board = await boardServices.createBoards(supabase, {
       title: boardData.title,
       description: boardData.description || null,
@@ -74,7 +128,7 @@ export const boardDataServices = {
         columnServices.createColumn(supabase, {
           ...column,
           board_id: board.id,
-          user_id : boardData.userId
+          user_id: boardData.userId,
         }),
       ),
     );
