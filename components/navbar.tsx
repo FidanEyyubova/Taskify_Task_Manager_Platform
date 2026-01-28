@@ -4,6 +4,7 @@ import {
   ArrowRight,
   CornerUpLeft,
   Ellipsis,
+  FunnelPlus,
   LayoutDashboard,
   LayoutGrid,
   LayoutList,
@@ -13,14 +14,23 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useBoards } from "@/lib/hooks/useBoards";
+import { Badge } from "./ui/badge";
 
 interface Props {
   boardTitle?: string;
   boardColor?: string;
   onEditBoard?: () => void;
+  onFilterClick?: () => void;
+  filterCount?: number;
 }
 
-const Navbar = ({ boardTitle, boardColor, onEditBoard }: Props) => {
+const Navbar = ({
+  boardTitle,
+  boardColor,
+  onEditBoard,
+  onFilterClick,
+  filterCount = 0,
+}: Props) => {
   const pathname = usePathname();
 
   const { isSignedIn, user } = useUser();
@@ -52,7 +62,7 @@ const Navbar = ({ boardTitle, boardColor, onEditBoard }: Props) => {
     return (
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 sm:py-4">
-          <div className="lex items-center justify-between">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
               <Link
                 href="/dashboard"
@@ -64,10 +74,10 @@ const Navbar = ({ boardTitle, boardColor, onEditBoard }: Props) => {
               </Link>
               <div className="h-4 sm:h-6 w-px bg-gray-300 hidden sm:block" />
               <div className="flex items-center space-x-1 sm:space-x-2 min-w-0">
-                   <div
-                          className="w-4 h-4 rounded"
-                          style={{ backgroundColor: boardColor }}
-                        />
+                <div
+                  className="w-4 h-4 rounded"
+                  style={{ backgroundColor: boardColor }}
+                />
                 <div className="flex items-center space-x-1 sm:space-x-2 min-w-0">
                   <span className="text-lg font-medium text-gray-900 truncate">
                     {boardTitle}
@@ -85,6 +95,20 @@ const Navbar = ({ boardTitle, boardColor, onEditBoard }: Props) => {
                   )}
                 </div>
               </div>
+            </div>
+            <div className="flex items0center space-x-3 sm:space-x-4 shrink-0">
+              {onFilterClick && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onFilterClick}
+                  className={`cursor-pointer text-xs sm:text-sm ${filterCount > 0 ? "bg-orange-100 border-orange-400" : ""}`}
+                >
+                  <FunnelPlus className="h-3 w-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Filter</span>
+                  {filterCount > 0 && <Badge variant="secondary" className="text-xs ml-1 sm:ml-2 bg-orange-100">{filterCount}</Badge>}
+                </Button>
+              )}
             </div>
           </div>
         </div>

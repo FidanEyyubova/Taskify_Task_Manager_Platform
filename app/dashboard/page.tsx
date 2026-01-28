@@ -260,7 +260,7 @@ const DashboardPage = () => {
     hover:border-orange-300
   "
               >
-                <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full min-h-43">
+                <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full min-h-42">
                   <Plus
                     className="
         h-6 w-6 sm:h-8 sm:w-8
