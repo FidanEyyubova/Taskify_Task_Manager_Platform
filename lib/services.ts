@@ -65,7 +65,7 @@ export const columnServices = {
       .from("columns")
       .select("*")
       .eq("board_id", boardId)
-      .order("sort_order", { ascending: false });
+      .order("sort_order", { ascending: true });
 
     if (error) throw error;
 
@@ -102,6 +102,32 @@ export const taskServices = {
 
     return data || [];
   },
+
+  async createTask(
+  supabase: SupabaseClient,
+  task: {
+    title: string;
+    description: string | null;
+    assignee: string | null;
+    due_date: string | null;
+    column_id: string;
+    sort_order: number;
+    priority: "low" | "medium" | "high";
+  }
+) {
+  const { data, error } = await supabase
+    .from("tasks")
+    .insert(task)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
 
   // async createColumn(
   //   supabase: SupabaseClient,
