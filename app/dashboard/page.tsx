@@ -14,6 +14,7 @@ import { useBoards } from "@/lib/hooks/useBoards";
 import { useUser } from "@clerk/nextjs";
 import {
   ChartColumn,
+  CheckCheck,
   CircleX,
   FunnelPlus,
   LayoutDashboard,
@@ -145,14 +146,14 @@ const DashboardPage = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs sm:text-sm font-medium text-gray-600">
-                    Active Projects
+                    Total Tasks
                   </p>
                   <p className="text-xl sm:text-2xl font-bold text-gray-900">
                     {boards.length}
                   </p>
                 </div>
                 <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <StickyNote className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500 " />
+                  <CheckCheck className="h-5 w-5 sm:h-6 sm:w-6 text-blue-500 " />
                 </div>
               </div>
             </CardContent>
@@ -296,7 +297,7 @@ const DashboardPage = () => {
                           />
                           {/* <Button
                             size="sm"
-                            className="p-2 cursor-pointer text-white bg-red transition-transform transform hover:scale-110"
+                            className="p-2 cursor-pointer text-white bg-red-500 transition-transform transform hover:scale-110"
                           >
                             <Trash className="h-3 w-3" />
                           </Button> */}

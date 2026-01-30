@@ -85,7 +85,24 @@ export const columnServices = {
 
     return data;
   },
+   async updateColumnTitle(
+    supabase: SupabaseClient,
+    columnId: string,
+    title: string
+  ): Promise<Column> {
+    const { data, error } = await supabase
+      .from("columns")
+      .update({ title })
+      .eq("id", columnId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
 };
+
+
 
 export const taskServices = {
   async getTaskByBoard(
@@ -126,7 +143,25 @@ export const taskServices = {
   }
 
   return data;
-}
+},
+ async moveTask(
+    supabase: SupabaseClient,
+    taskId: string,
+    newColumnId: string,
+    newOrder: number
+  ) {
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        column_id: newColumnId,
+        sort_order: newOrder,
+      })
+      .eq("id", taskId);
+
+    if (error) throw error;
+    return data;
+  },
+};
 
 
   // async createColumn(
@@ -142,7 +177,7 @@ export const taskServices = {
 
   //   return data;
   // },
-};
+
 
 //BOARD WITH DEFAULT COLUMNS
 export const boardDataServices = {
@@ -182,8 +217,8 @@ export const boardDataServices = {
     const defaultColumns = [
       { title: "To Do", sort_order: 0 },
       { title: "In Progress", sort_order: 1 },
-      { title: "Salam", sort_order: 2 },
-      { title: "Sagol", sort_order: 3 },
+      { title: "Review", sort_order: 2 },
+      { title: "Done", sort_order: 3 },
     ];
     await Promise.all(
       defaultColumns.map((column) =>
