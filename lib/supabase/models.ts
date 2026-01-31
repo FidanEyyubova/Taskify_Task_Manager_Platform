@@ -6,6 +6,7 @@ export interface Board {
   color: string;
   user_id: string;
   updated_at: string;
+  columns?: (Column & { tasks: Task[] })[];
 }
 
 export interface Column {

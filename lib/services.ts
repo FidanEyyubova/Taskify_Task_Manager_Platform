@@ -17,7 +17,13 @@ export const boardServices = {
   async getBoards(supabase: SupabaseClient, userId: string): Promise<Board[]> {
     const { data, error } = await supabase
       .from("boards")
-      .select("*")
+      .select(`
+    *,
+    columns (
+      *,
+      tasks (*)
+    )
+  `)  
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
@@ -217,8 +223,7 @@ export const boardDataServices = {
     const defaultColumns = [
       { title: "To Do", sort_order: 0 },
       { title: "In Progress", sort_order: 1 },
-      { title: "Review", sort_order: 2 },
-      { title: "Done", sort_order: 3 },
+      { title: "Done", sort_order: 2 },
     ];
     await Promise.all(
       defaultColumns.map((column) =>
