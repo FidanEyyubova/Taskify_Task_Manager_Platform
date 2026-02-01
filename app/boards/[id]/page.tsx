@@ -67,7 +67,6 @@ function DroppableColumn({
             : "border-gray-200 z-0"
         }`}
       >
-        {/* Column Header */}
         <div className="p-3 sm:p-4 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 min-w-0">
@@ -89,7 +88,7 @@ function DroppableColumn({
           </div>
         </div>
 
-        {/* column content */}
+        {}
         <div className="p-3">{children}</div>
       </div>
     </div>
@@ -171,6 +170,7 @@ const BoardPage = () => {
     updateColumn,
     createColumn,
   } = useBoard(id);
+
   const [editTitle, setEditTitle] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newColor, setNewColor] = useState("");
@@ -183,11 +183,53 @@ const BoardPage = () => {
   const [editingColumn, setEditingColumn] = useState<ColumnWithTasks | null>(
     null,
   );
-  const [filters, setFilters] = useState({
+
+  const [filterTask, setFilterTask] = useState({
     priority: [] as string[],
     assignee: [] as string[],
     dueDate: null as string | null,
   });
+
+  function handleFilterChange(
+    type: "priority" | "assignee" | "dueDate",
+    value: string | string[] | null,
+  ) {
+    setFilterTask((prev) => ({
+      ...prev,
+      [type]: value,
+    }));
+  }
+
+  function clearFilterTask() {
+    setFilterTask({
+      priority: [] as string[],
+      assignee: [] as string[],
+      dueDate: null as string | null,
+    });
+  }
+
+  const filteredColumns = column.map((column) => ({
+    ...column,
+    tasks: column.tasks.filter((task) => {
+      if (
+        filterTask.priority.length > 0 &&
+        (!task.priority || !filterTask.priority.includes(task.priority))
+      ) {
+        return false;
+      }
+
+      if (filterTask.dueDate && task.due_date) {
+        const taskDate = new Date(task.due_date).toDateString();
+        const filterDate = new Date(filterTask.dueDate).toDateString();
+
+        if (taskDate !== filterDate) {
+          return false;
+        }
+      }
+
+      return true;
+    }),
+  }));
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -195,24 +237,6 @@ const BoardPage = () => {
       },
     }),
   );
-
-  function handleFilterChange(
-    type: "priority" | "assignee" | "dueDate",
-    value: string | string[] | null,
-  ) {
-    setFilters((prev) => ({
-      ...prev,
-      [type]: value,
-    }));
-  }
-
-  function clearFilters() {
-    setFilters({
-      priority: [] as string[],
-      assignee: [] as string[],
-      dueDate: null as string | null,
-    });
-  }
 
   async function handleUpdateBoard(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -335,7 +359,6 @@ const BoardPage = () => {
         await moveTask(taskId, targetColumn.id, targetColumn.tasks.length);
       }
     } else {
-      // Check to see if were dropping on another task
       const sourceColumn = column.find((col) =>
         col.tasks.some((task) => task.id === taskId),
       );
@@ -388,39 +411,11 @@ const BoardPage = () => {
     setEditingColumnTitle(column.title);
   }
 
-    const filteredColumns = column.map((column) => ({
-    ...column,
-    tasks: column.tasks.filter((task) => {
-      // Filter by priority
-     if (
-  filters.priority.length > 0 &&
-  (!task.priority || !filters.priority.includes(task.priority))
-) {
-  return false;
-}
-
-
-      // Filter by due date
-
-      if (filters.dueDate && task.due_date) {
-        const taskDate = new Date(task.due_date).toDateString();
-        const filterDate = new Date(filters.dueDate).toDateString();
-
-        if (taskDate !== filterDate) {
-          return false;
-        }
-      }
-
-      return true;
-    }),
-  }));
-  // Bu kodu "return (" hissəsindən dərhal əvvələ yapışdırın
-const activeFilterCount = [
-  filters.priority.length > 0, // Priority seçilibmi?
-  filters.dueDate !== null,     // Tarix seçilibmi?
-  filters.assignee.length > 0   // Assignee seçilibmi?
-].filter(Boolean).length; // Yalnız "true" olanların sayını tapır
-
+  const activeFilterCount = [
+    filterTask.priority.length > 0,
+    filterTask.assignee.length > 0,
+    filterTask.dueDate !== null,
+  ].filter(Boolean).length;
 
   return (
     <>
@@ -488,15 +483,26 @@ const activeFilterCount = [
                   ))}
                 </div>
               </div>
-              <div className="flex justify-end space-x-2 mt-8">
+              <div className="flex justify-between space-x-2 mt-8">
                 <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => setEditTitle(false)}
+                  type="submit"
+                  className="bg-red-700 cursor-pointer hover:bg-red-700"
                 >
-                  Cancel
+                  Delete Board
                 </Button>
-                <Button type="submit">Save Changes</Button>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={() => setEditTitle(false)}
+                    className="cursor-pointer"
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" className="cursor-pointer">
+                    Save Changes
+                  </Button>
+                </div>
               </div>
             </form>
           </DialogContent>
@@ -517,17 +523,17 @@ const activeFilterCount = [
                   {["low", "medium", "high"].map((priority, key) => (
                     <Button
                       onClick={() => {
-                        const newPriorities = filters.priority.includes(
+                        const newPriorities = filterTask.priority.includes(
                           priority,
                         )
-                          ? filters.priority.filter((p) => p !== priority)
-                          : [...filters.priority, priority];
+                          ? filterTask.priority.filter((p) => p !== priority)
+                          : [...filterTask.priority, priority];
 
                         handleFilterChange("priority", newPriorities);
                       }}
                       key={key}
                       variant={
-                        filters.priority.includes(priority)
+                        filterTask.priority.includes(priority)
                           ? "default"
                           : "outline"
                       }
@@ -543,7 +549,7 @@ const activeFilterCount = [
                 <Label>Due Date</Label>
                 <Input
                   type="date"
-                  value={filters.dueDate || ""}
+                  value={filterTask.dueDate || ""}
                   onChange={(e) =>
                     handleFilterChange("dueDate", e.target.value || null)
                   }
@@ -554,7 +560,7 @@ const activeFilterCount = [
                 <Button
                   type="button"
                   variant={"outline"}
-                  onClick={clearFilters}
+                  onClick={clearFilterTask}
                 >
                   Clear Filters
                 </Button>
@@ -666,7 +672,6 @@ const activeFilterCount = [
             lg:[&::-webkit-scrollbar-thumb]:bg-gray-300 lg:[&::-webkit-scrollbar-thumb]:rounded-full 
             space-y-4 lg:space-y-0"
             >
-            
               {filteredColumns.map((col, key) => (
                 <DroppableColumn
                   key={key}
@@ -674,7 +679,7 @@ const activeFilterCount = [
                   onCreateTask={handleColumnTaskCreate}
                   onEditColumn={handleEditColumn}
                 >
-                <SortableContext
+                  <SortableContext
                     items={col.tasks.map((task) => task.id)}
                     strategy={verticalListSortingStrategy}
                   >
@@ -711,7 +716,7 @@ const activeFilterCount = [
               Add new column to organuze your tasks
             </p>
           </DialogHeader>
-          <form className="space-y-4" onSubmit={handleColumnTaskCreate}>
+          <form className="space-y-4" onSubmit={handleCreateColumn}>
             <div className="space-y-2">
               <Label>Column Title</Label>
               <Input
@@ -731,6 +736,55 @@ const activeFilterCount = [
               <DialogClose asChild>
                 <Button type="submit">Create Column</Button>
               </DialogClose>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={!!editingColumn}
+        onOpenChange={(open) => {
+          if (!open) setEditingColumn(null);
+        }}
+      >
+        <DialogContent className="w-[95vw] max-w-106.25 mx-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Column</DialogTitle>
+            <p className="text-sm text-gray-600">
+              Update the title of your column
+            </p>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={handleUpdateColumn}>
+            <div className="space-y-2">
+              <Label>Column Title</Label>
+              <Input
+                id="columnTitle"
+                value={editingColumnTitle}
+                onChange={(e) => setEditingColumnTitle(e.target.value)}
+                placeholder="Enter column title..."
+                required
+              />
+            </div>
+            <div className="space-x-2 flex justify-end">
+              <Button
+                type="submit"
+                className="bg-red-700 cursor-pointer hover:bg-red-700"
+              >
+                Delete Column
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setEditingColumn(null);
+                  setEditingColumnTitle("");
+                  setEditingColumn(null);
+                }}
+                variant="outline"
+              >
+                Cancel
+              </Button>
+              <div>
+                <Button type="submit">Edit Column</Button>
+              </div>
             </div>
           </form>
         </DialogContent>

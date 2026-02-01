@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -25,7 +26,6 @@ import {
   CheckCheck,
   CircleX,
   Filter,
-  FunnelPlus,
   LayoutDashboard,
   LayoutGrid,
   List,
@@ -83,10 +83,11 @@ const DashboardPage = () => {
     await createBoard({ title: "New Board" });
   };
   const totalTasksCount = boards.reduce((acc, board) => {
-  // Hər board-un daxilindəki bütün sütunların tasklarını birləşdirib sayırıq
-  const boardTasksCount = board.columns?.reduce((sum, col) => sum + (col.tasks?.length || 0), 0) || 0;
-  return acc + boardTasksCount;
-}, 0);
+    const boardTasksCount =
+      board.columns?.reduce((sum, col) => sum + (col.tasks?.length || 0), 0) ||
+      0;
+    return acc + boardTasksCount;
+  }, 0);
 
   if (loading) {
     return (
@@ -216,7 +217,7 @@ const DashboardPage = () => {
           </Card>
         </div>
 
-        {/*Board*/}
+        {}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
             <div>
@@ -225,8 +226,8 @@ const DashboardPage = () => {
               </h2>
               <p className="text-gray-600">Manage your projects and tasks</p>
             </div>
-            <div className="flex flex-col sm:flex-row items-strech sm:justify-center space-y-2 sm:space-y-0">
-              <div className="flex items-center space-x-2 bg-white border p-1">
+            <div className="flex flex-col gap-2 sm:flex-row items-strech sm:justify-center space-y-2 sm:space-y-0">
+              <div className="flex items-center space-x-2 bg-white border rounded-lg p-1">
                 <Button
                   variant={viewMode === "grid" ? "default" : "ghost"}
                   size="sm"
@@ -245,20 +246,20 @@ const DashboardPage = () => {
                 </Button>
               </div>
               <Button
-                variant={activeFilterCount > 0 ? "default" : "outline"} // Seçiləndə variant dəyişsin
+                variant={activeFilterCount > 0 ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsFilterOpen(true)}
                 className={
                   activeFilterCount > 0
-                    ? "bg-red-600 hover:bg-red-700 text-white border-red-600"
-                    : ""
+                    ? "bg-orange-400 hover:bg-orange-400 text-white border-orange-400 h-9 cursor-pointer"
+                    : "h-9 cursor-pointer"
                 }
               >
-                <Filter className="h-4 w-4 mr-2" />
+                <Filter className="h-4 w-4" />
                 Filter {activeFilterCount > 0 && `(${activeFilterCount})`}
               </Button>
-              <Button onClick={handleCreateBoard}>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={handleCreateBoard} className="cursor-pointer">
+                <Plus className="h-4 w-4 " />
                 Create Board
               </Button>
             </div>
@@ -277,7 +278,9 @@ const DashboardPage = () => {
           </div>
 
           {boards.length === 0 ? (
-            <div>No boards yet</div>
+            <div className="font-semibold text-base sm:text-lg">
+              No boards yet
+            </div>
           ) : viewMode === "grid" ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {filteredBoards.map((board, key) => (
@@ -362,16 +365,16 @@ const DashboardPage = () => {
                             className="w-4 h-4 rounded"
                             style={{ backgroundColor: board.color }}
                           />
-                      <Button
-                          size="sm"
-                          className="  bg-white hover:scale-111 text-red-700 hover:text-white  hover:bg-red-700 transition-transform cursor-pointer"
-                        >
-                          <Trash className="h-5 w-5 " />
-                        </Button>
+                          <Button
+                            size="sm"
+                            className="  bg-white hover:scale-111 text-red-700 hover:text-white  hover:bg-red-700 transition-transform cursor-pointer"
+                          >
+                            <Trash className="h-5 w-5 " />
+                          </Button>
                         </div>
                       </CardHeader>
                       <CardContent className="p-4 sm:p-6">
-                        <CardTitle className="text-base sm:text-lg mb-2 group-hover:text-orange-300 transition-colors">
+                        <CardTitle className="text-base sm:text-lg mb-2  transition-colors">
                           {board.title}
                         </CardTitle>
                         <CardDescription className="mb-4 text-sm">
@@ -436,17 +439,18 @@ const DashboardPage = () => {
             </p>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Search</Label>
+            <div className="space-y-3">
+              <Label className="mb-2">Search</Label>
               <Input
                 id="search"
                 placeholder="Search board titles..."
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, search: e.target.value }))
                 }
+                className="focus-visible:outline-none focus-visible:ring-0"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label>Date Range</Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
@@ -483,10 +487,18 @@ const DashboardPage = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row justify-between pt-4 space-y-2 sm:space-y-0 sm:space-x-2">
-              <Button variant="outline" onClick={clearFilters}>
+              <Button
+                variant="outline"
+                onClick={clearFilters}
+                className="cursor-pointer"
+              >
                 Clear Filters
               </Button>
-              <Button onClick={() => setIsFilterOpen(false)}>
+
+              <Button
+                onClick={() => setIsFilterOpen(false)}
+                className="cursor-pointer"
+              >
                 Apply Filters
               </Button>
             </div>

@@ -1,7 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Board, Column, Task } from "./supabase/models";
 
-//BOARD SERVICES
 export const boardServices = {
   async getBoard(supabase: SupabaseClient, boardId: string): Promise<Board> {
     const { data, error } = await supabase
@@ -17,13 +16,15 @@ export const boardServices = {
   async getBoards(supabase: SupabaseClient, userId: string): Promise<Board[]> {
     const { data, error } = await supabase
       .from("boards")
-      .select(`
+      .select(
+        `
     *,
     columns (
       *,
       tasks (*)
     )
-  `)  
+  `,
+      )
       .eq("user_id", userId)
       .order("created_at", { ascending: false });
 
@@ -61,7 +62,6 @@ export const boardServices = {
   },
 };
 
-//COLUMN SERVICE
 export const columnServices = {
   async getColumns(
     supabase: SupabaseClient,
@@ -91,10 +91,10 @@ export const columnServices = {
 
     return data;
   },
-   async updateColumnTitle(
+  async updateColumnTitle(
     supabase: SupabaseClient,
     columnId: string,
-    title: string
+    title: string,
   ): Promise<Column> {
     const { data, error } = await supabase
       .from("columns")
@@ -107,8 +107,6 @@ export const columnServices = {
     return data;
   },
 };
-
-
 
 export const taskServices = {
   async getTaskByBoard(
@@ -127,34 +125,34 @@ export const taskServices = {
   },
 
   async createTask(
-  supabase: SupabaseClient,
-  task: {
-    title: string;
-    description: string | null;
-    assignee: string | null;
-    due_date: string | null;
-    column_id: string;
-    sort_order: number;
-    priority: "low" | "medium" | "high";
-  }
-) {
-  const { data, error } = await supabase
-    .from("tasks")
-    .insert(task)
-    .select()
-    .single();
+    supabase: SupabaseClient,
+    task: {
+      title: string;
+      description: string | null;
+      assignee: string | null;
+      due_date: string | null;
+      column_id: string;
+      sort_order: number;
+      priority: "low" | "medium" | "high";
+    },
+  ) {
+    const { data, error } = await supabase
+      .from("tasks")
+      .insert(task)
+      .select()
+      .single();
 
-  if (error) {
-    throw new Error(error.message);
-  }
+    if (error) {
+      throw new Error(error.message);
+    }
 
-  return data;
-},
- async moveTask(
+    return data;
+  },
+  async moveTask(
     supabase: SupabaseClient,
     taskId: string,
     newColumnId: string,
-    newOrder: number
+    newOrder: number,
   ) {
     const { data, error } = await supabase
       .from("tasks")
@@ -169,23 +167,6 @@ export const taskServices = {
   },
 };
 
-
-  // async createColumn(
-  //   supabase: SupabaseClient,
-  //   column: Omit<Column, "id" | "created_at">,
-  // ): Promise<Column> {
-  //   const { data, error } = await supabase
-  //     .from("columns")
-  //     .insert(column)
-  //     .select()
-  //     .single();
-  //   if (error) throw error;
-
-  //   return data;
-  // },
-
-
-//BOARD WITH DEFAULT COLUMNS
 export const boardDataServices = {
   async getBoardWithColumns(supabase: SupabaseClient, boardId: string) {
     const [board, column] = await Promise.all([

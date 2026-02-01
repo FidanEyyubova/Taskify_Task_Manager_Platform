@@ -32,9 +32,6 @@ const Navbar = ({
   
   const isDashboardPage = pathname === "/dashboard";
   const isBoardPage = pathname.startsWith("/boards");
-  console.log("NAVBAR-A GELEN FILTER SAYI:", filterCount);
-
-  // Filter aktivdirmi?
   const hasFilters = filterCount > 0;
 
   if (isDashboardPage) {
@@ -44,7 +41,7 @@ const Navbar = ({
           <div className="flex items-center space-x-2">
             <span className="text-xl sm:text-2xl font-bold">
               <Link href="/">
-                <span className="text-[#FFA239]">Task</span>ify
+                <span className="text-[#FFA239]">Task</span>zen
               </Link>
             </span>
           </div>
@@ -92,29 +89,27 @@ const Navbar = ({
             </div>
 
             <div className="flex items-center space-x-3 shrink-0">
-              {onFilterClick && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onFilterClick}
-                  className={`text-xs sm:text-sm transition-colors ${
-                    hasFilters 
-                      ? "bg-red-100! !border-red-300 text-red-700! hover:!bg-red-200" 
-                      : ""
-                  }`}
-                >
-                  <Filter className={`h-3 w-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 ${hasFilters ? "!text-red-700" : ""}`} />
-                  <span className="hidden sm:inline">Filter</span>
-                  {hasFilters && (
-                    <Badge
-                      variant="secondary"
-                      className="text-xs ml-1 sm:ml-2 !bg-blue-600 !text-white border-none"
-                    >
-                      {filterCount}
-                    </Badge>
-                  )}
-                </Button>
-              )}
+            {onFilterClick && (
+  <Button
+    variant="outline"
+    size="sm"
+    onClick={onFilterClick}
+    className={`text-xs sm:text-sm transition-colors h-9 cursor-pointer
+      ${hasFilters 
+        ? "bg-orange-400 border-orange-400 text-white hover:bg-orange-500 hover:text-white" 
+        : "hover:bg-gray-100 hover:text-black"
+      }`}
+  >
+    <Filter className={`h-3 w-3 sm:w-4 sm:h-4 ${hasFilters ? "text-white" : ""}`} />
+    <span className="ml-1">
+      Filter
+      {hasFilters && (
+        <span className="hidden sm:inline"> ({filterCount})</span>
+      )}
+    </span>
+  </Button>
+)}
+
             </div>
           </div>
         </div>
@@ -128,7 +123,7 @@ const Navbar = ({
         <div className="flex items-center space-x-2">
           <span className="text-xl sm:text-2xl font-bold">
             <Link href="/">
-              <span className="text-[#FFA239]">Task</span>ify
+              <span className="text-[#FFA239]">Task</span>zen
             </Link>
           </span>
         </div>
@@ -139,7 +134,7 @@ const Navbar = ({
                 Welcome, {user.firstName ?? user.fullName}
               </span>
               <Link href="/dashboard">
-                <Button size="sm" className="text-xs sm:text-sm">
+                <Button size="sm" className="text-xs sm:text-sm cursor-pointer">
                   Go to Dashboard <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
@@ -148,10 +143,10 @@ const Navbar = ({
           ) : (
             <div className="flex items-center space-x-2">
               <SignInButton>
-                <Button variant="ghost" size="sm">Sign In</Button>
+                <Button variant="ghost" size="sm" className="cursor-pointer">Sign In</Button>
               </SignInButton>
               <SignUpButton>
-                <Button size="sm">Sign Up</Button>
+                <Button size="sm" className="cursor-pointer">Sign Up</Button>
               </SignUpButton>
             </div>
           )}

@@ -1,12 +1,15 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
-import { boardDataServices, boardServices, columnServices, taskServices } from "../services";
+import {
+  boardDataServices,
+  boardServices,
+  columnServices,
+  taskServices,
+} from "../services";
 import { useEffect, useState } from "react";
 import { Board, Column, ColumnWithTasks, Task } from "../supabase/models";
 import { useSupabase } from "../supabase/SupabaseProvider";
-
-
+import { useUser } from "@clerk/nextjs";
 
 export function useBoards() {
   const { user } = useUser();
@@ -52,6 +55,7 @@ export function useBoards() {
         },
       );
       setBoards((prev) => [newBoard, ...prev]);
+      return newBoard;
     } catch (errormessage) {
       setError(
         errormessage instanceof Error
@@ -60,8 +64,8 @@ export function useBoards() {
       );
     }
   }
-  
-  return { createBoard, loading, error, boards };
+
+  return { createBoard, loading, error, boards, setBoards };
 }
 
 export function useBoard(boardId: string) {
@@ -98,63 +102,63 @@ export function useBoard(boardId: string) {
     }
   }
 
-   async function updateBoard(boardId: string, updates : Partial<Board>) {
+  async function updateBoard(boardId: string, updates: Partial<Board>) {
     try {
       const updatedBoard = await boardServices.updateBoard(
         supabase!,
         boardId,
-        updates
+        updates,
       );
-      setBoard(updatedBoard)
-      return updatedBoard
+      setBoard(updatedBoard);
+      return updatedBoard;
     } catch (error) {
       setError(
         error instanceof Error ? error.message : "Failed to update the boards!",
       );
-    } 
+    }
   }
 
- async function createRealTask(
-  columnId: string,
-  taskData: {
-    title: string;
-    description?: string | null;
-    assignee?: string | null;
-    dueDate?: string | null;
-    priority?: "low" | "medium" | "high";
-  }
-) {
-  try {
-    const newTask = await taskServices.createTask(supabase!, {
-      title: taskData.title,
-      description: taskData.description ?? null,
-      assignee: taskData.assignee ?? null,
-      due_date: taskData.dueDate ?? null,
-      column_id: columnId,
-      sort_order:
-        column.find((col) => col.id === columnId)?.tasks.length ?? 0,
-      priority: taskData.priority ?? "medium",
-    });
+  async function createRealTask(
+    columnId: string,
+    taskData: {
+      title: string;
+      description?: string | null;
+      assignee?: string | null;
+      dueDate?: string | null;
+      priority?: "low" | "medium" | "high";
+    },
+  ) {
+    try {
+      const newTask = await taskServices.createTask(supabase!, {
+        title: taskData.title,
+        description: taskData.description ?? null,
+        assignee: taskData.assignee ?? null,
+        due_date: taskData.dueDate ?? null,
+        column_id: columnId,
+        sort_order:
+          column.find((col) => col.id === columnId)?.tasks.length ?? 0,
+        priority: taskData.priority ?? "medium",
+      });
 
-    setColumn((prev) =>
-      prev.map((col) =>
-        col.id === columnId
-          ? { ...col, tasks: [...col.tasks, newTask] }
-          : col
-      )
-    );
+      setColumn((prev) =>
+        prev.map((col) =>
+          col.id === columnId
+            ? { ...col, tasks: [...col.tasks, newTask] }
+            : col,
+        ),
+      );
 
-    return newTask;
-  } catch (err) {
-    setError(
-      err instanceof Error ? err.message : "Failed to create the task."
-    );
+      return newTask;
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to create the task.",
+      );
+    }
   }
-}
-async function moveTask(
+  async function moveTask(
     taskId: string,
     newColumnId: string,
-    newOrder: number
+    newOrder: number,
   ) {
     try {
       await taskServices.moveTask(supabase!, taskId, newColumnId, newOrder);
@@ -162,7 +166,6 @@ async function moveTask(
       setColumn((prev) => {
         const newColumns = [...prev];
 
-        // Find and remove task from the old column
         let taskToMove: Task | null = null;
         for (const col of newColumns) {
           const taskIndex = col.tasks.findIndex((task) => task.id === taskId);
@@ -174,7 +177,6 @@ async function moveTask(
         }
 
         if (taskToMove) {
-          // Add task to new column
           const targetColumn = newColumns.find((col) => col.id === newColumnId);
           if (targetColumn) {
             targetColumn.tasks.splice(newOrder, 0, taskToMove);
@@ -187,7 +189,6 @@ async function moveTask(
       setError(err instanceof Error ? err.message : "Failed to move task.");
     }
   }
-  
 
   async function createColumn(title: string) {
     if (!board || !user) throw new Error("Board not loaded");
@@ -212,13 +213,13 @@ async function moveTask(
       const updatedColumn = await columnServices.updateColumnTitle(
         supabase!,
         columnId,
-        title
+        title,
       );
 
       setColumn((prev) =>
         prev.map((col) =>
-          col.id === columnId ? { ...col, ...updatedColumn } : col
-        )
+          col.id === columnId ? { ...col, ...updatedColumn } : col,
+        ),
       );
 
       return updatedColumn;
@@ -227,7 +228,16 @@ async function moveTask(
     }
   }
 
-
-  return { board, column, error, loading,updateBoard,createRealTask,moveTask,setColumn,updateColumn, createColumn };
+  return {
+    board,
+    column,
+    error,
+    loading,
+    updateBoard,
+    createRealTask,
+    moveTask,
+    setColumn,
+    updateColumn,
+    createColumn,
+  };
 }
-
