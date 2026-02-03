@@ -10,10 +10,12 @@ import { useEffect, useState } from "react";
 import { Board, Column, ColumnWithTasks, Task } from "../supabase/models";
 import { useSupabase } from "../supabase/SupabaseProvider";
 import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 export function useBoards() {
   const { user } = useUser();
   const { supabase } = useSupabase();
+  const route = useRouter();
   const [boards, setBoards] = useState<Board[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,13 +66,24 @@ export function useBoards() {
       );
     }
   }
+  async function deleteBoard(boardId: string) {
+    setBoards((prev) => prev.filter((b) => b.id !== boardId));
 
-  return { createBoard, loading, error, boards, setBoards };
+    const error = await boardServices.deleteBoards(supabase!, boardId);
+    route.replace("/dashboard");
+    if (error) {
+      loadBoards();
+      throw error;
+    }
+  }
+
+  return { createBoard, loading, error, boards, setBoards, deleteBoard };
 }
 
 export function useBoard(boardId: string) {
   const { user } = useUser();
   const { supabase } = useSupabase();
+  const route = useRouter();
   const [board, setBoard] = useState<Board | null>(null);
   const [column, setColumn] = useState<ColumnWithTasks[]>([]);
   const [loading, setLoading] = useState(true);
@@ -207,7 +220,21 @@ export function useBoard(boardId: string) {
       setError(err instanceof Error ? err.message : "Failed to create column.");
     }
   }
+  async function deleteColumn(columnId: string) {
+    const previousColumns = [...column];
 
+    setColumn((prev) => prev.filter((b) => b.id !== columnId));
+
+    try {
+      await columnServices.deleteColumns(supabase!, columnId);
+    } catch (error: any) {
+      setColumn(previousColumns);
+      alert("Sütunu silmək mümkün olmadı. Xəta: " + error.message);
+      throw error;
+    }
+  }
+
+  
   async function updateColumn(columnId: string, title: string) {
     try {
       const updatedColumn = await columnServices.updateColumnTitle(
@@ -228,6 +255,63 @@ export function useBoard(boardId: string) {
     }
   }
 
+
+  async function updateTask(taskId: string, updates: Partial<Task>) {
+    const previousColumns = [...column];
+
+    setColumn((prev) =>
+      prev.map((col) => ({
+        ...col,
+        tasks: col.tasks.map((task) =>
+          task.id === taskId ? { ...task, ...updates } : task,
+        ),
+      })),
+    );
+
+    try {
+      const updatedTask = await taskServices.updateTask(
+        supabase!,
+        taskId,
+        updates,
+      );
+
+      setColumn((prev) =>
+        prev.map((col) => ({
+          ...col,
+          tasks: col.tasks.map((task) =>
+            task.id === taskId ? updatedTask : task,
+          ),
+        })),
+      );
+
+      return updatedTask;
+    } catch (err) {
+      setColumn(previousColumns);
+      setError(err instanceof Error ? err.message : "Failed to update task.");
+      throw err;
+    }
+  }
+
+
+  async function deleteTask(taskId: string) {
+    const previousColumns = [...column];
+
+    setColumn((prev) =>
+      prev.map((col) => ({
+        ...col,
+        tasks: col.tasks.filter((task) => task.id !== taskId),
+      })),
+    );
+
+    try {
+      await taskServices.deleteTask(supabase!, taskId);
+    } catch (err) {
+      setColumn(previousColumns);
+      setError(err instanceof Error ? err.message : "Failed to delete task.");
+      throw err;
+    }
+  }
+
   return {
     board,
     column,
@@ -239,5 +323,8 @@ export function useBoard(boardId: string) {
     setColumn,
     updateColumn,
     createColumn,
+    deleteColumn,
+    updateTask,
+    deleteTask,
   };
 }

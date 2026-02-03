@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useBoard } from "@/lib/hooks/useBoards";
+import { useBoard, useBoards } from "@/lib/hooks/useBoards";
 import { ColumnWithTasks, Task } from "@/lib/supabase/models";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { Calendar, MoreHorizontal, Plus } from "lucide-react";
@@ -169,7 +169,10 @@ const BoardPage = () => {
     setColumn,
     updateColumn,
     createColumn,
+    deleteColumn,
   } = useBoard(id);
+
+  const { deleteBoard } = useBoards();
 
   const [editTitle, setEditTitle] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -487,6 +490,7 @@ const BoardPage = () => {
                 <Button
                   type="submit"
                   className="bg-red-700 cursor-pointer hover:bg-red-700"
+                  onClick={() => deleteBoard(id)}
                 >
                   Delete Board
                 </Button>
@@ -766,11 +770,22 @@ const BoardPage = () => {
             </div>
             <div className="space-x-2 flex justify-end">
               <Button
-                type="submit"
+                type="button"
                 className="bg-red-700 cursor-pointer hover:bg-red-700"
+                onClick={async () => {
+                  if (editingColumn) {
+                    try {
+                      await deleteColumn(editingColumn.id);
+
+                      setEditingColumn(null);
+                      setEditingColumnTitle("");
+                    } catch (err) {}
+                  }
+                }}
               >
                 Delete Column
               </Button>
+
               <Button
                 type="button"
                 onClick={() => {

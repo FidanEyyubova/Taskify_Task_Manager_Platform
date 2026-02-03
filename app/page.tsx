@@ -53,7 +53,7 @@ const Home = () => {
               Work Smarter
             </h2>
             <p className="mt-2 text-gray-600 font-semibold">
-              Do more with Taskify
+              Do more with Taskzen
             </p>
           </div>
 
@@ -115,7 +115,7 @@ const Home = () => {
 
       <section className="px-4 py-10 bg-linear-to-r from-orange-600 to-orange-300 text-white text-center">
         <h2 className="text-xl sm:text-4xl font-semibold">
-          Get Started with Taskify
+          Get Started with Taskzen
         </h2>
       </section>
       <Footer />

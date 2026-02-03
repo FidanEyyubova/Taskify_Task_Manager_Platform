@@ -60,6 +60,21 @@ export const boardServices = {
 
     return data;
   },
+
+  async deleteBoards(
+    supabase: SupabaseClient,
+    boardId: string,
+  ): Promise<Board> {
+    const { data, error } = await supabase
+      .from("boards")
+      .delete()
+      .eq("id", boardId)
+      .single();
+
+    if (error) throw error;
+
+    return data;
+  },
 };
 
 export const columnServices = {
@@ -76,6 +91,18 @@ export const columnServices = {
     if (error) throw error;
 
     return data || [];
+  },
+
+  async deleteColumns(
+    supabase: SupabaseClient,
+    columnId: string,
+  ): Promise<void> {
+    const { error } = await supabase
+      .from("columns")
+      .delete()
+      .eq("id", columnId);
+
+    if (error) throw error;
   },
 
   async createColumn(
@@ -165,6 +192,47 @@ export const taskServices = {
     if (error) throw error;
     return data;
   },
+  async updateTask(
+  supabase: SupabaseClient,
+  taskId: string,
+  updates: Partial<{
+    title: string;
+    description: string | null;
+    assignee: string | null;
+    due_date: string | null;
+    priority: "low" | "medium" | "high";
+    sort_order: number;
+    column_id: string;
+  }>,
+): Promise<Task> {
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", taskId)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data;
+},
+
+async deleteTask(
+  supabase: SupabaseClient,
+  taskId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("tasks")
+    .delete()
+    .eq("id", taskId);
+
+  if (error) throw error;
+},
+
+
 };
 
 export const boardDataServices = {
