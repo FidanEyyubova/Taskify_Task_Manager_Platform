@@ -95,7 +95,15 @@ function DroppableColumn({
   );
 }
 
-function SortableTask({ task }: { task: Task }) {
+function SortableTask({
+  task,
+  setEditingTask,
+  setTaskDialogOpen,
+}: {
+  task: Task;
+  setEditingTask: React.Dispatch<React.SetStateAction<Task | null>>;
+  setTaskDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const {
     attributes,
     listeners,
@@ -123,9 +131,23 @@ function SortableTask({ task }: { task: Task }) {
   }
   return (
     <div ref={setNodeRef} {...listeners} {...attributes} style={styles}>
-      <Card className="cursor-pointer hover:shadow-md transition-shadow">
+      <Card className="relative cursor-pointer hover:shadow-md transition-shadow">
         <CardContent className="p-3 sm:p-4">
           <div className="space-y-2 sm:space-y-3">
+            {}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingTask(task);
+                setTaskDialogOpen(true);
+              }}
+            >
+              <MoreHorizontal />
+            </Button>
+
             <div className="flex items-start justify-between">
               <h4 className="font-medium text-gray-900 text-sm leading-tight flex-1 min-w-0 pr-2">
                 {task.title}
@@ -170,6 +192,8 @@ const BoardPage = () => {
     updateColumn,
     createColumn,
     deleteColumn,
+    updateTask,
+    deleteTask,
   } = useBoard(id);
 
   const { deleteBoard } = useBoards();
@@ -179,13 +203,14 @@ const BoardPage = () => {
   const [newColor, setNewColor] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [isCreateColumn, setIsCreateColumn] = useState(false);
-  const [editColumn, isEditColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState("");
   const [editingColumnTitle, setEditingColumnTitle] = useState("");
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [editingColumn, setEditingColumn] = useState<ColumnWithTasks | null>(
     null,
   );
+  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const [filterTask, setFilterTask] = useState({
     priority: [] as string[],
@@ -233,6 +258,26 @@ const BoardPage = () => {
       return true;
     }),
   }));
+
+  async function handleUpdateTask(task: Task) {
+    if (!task) return;
+
+    try {
+      await updateTask(task.id, {
+        title: task.title,
+        description: task.description ?? null,
+        priority: task.priority,
+        due_date: task.due_date ?? null,
+      });
+
+      setTaskDialogOpen(false);
+      setEditingTask(null);
+    } catch (err: any) {
+      console.error("Update error:", err);
+      alert("Xəta baş verdi: " + (err.message || "Bilinməyən xəta"));
+    }
+  }
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -385,6 +430,7 @@ const BoardPage = () => {
       }
     }
   }
+
   async function handleCreateColumn(e: React.FormEvent) {
     e.preventDefault();
 
@@ -404,12 +450,10 @@ const BoardPage = () => {
     await updateColumn(editingColumn.id, editingColumnTitle.trim());
 
     setEditingColumnTitle("");
-    isEditColumn(false);
     setEditingColumn(null);
   }
 
   function handleEditColumn(column: ColumnWithTasks) {
-    isEditColumn(true);
     setEditingColumn(column);
     setEditingColumnTitle(column.title);
   }
@@ -577,17 +621,12 @@ const BoardPage = () => {
         </Dialog>
 
         <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 mb-6">
-            <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-              <div className="text-sm text-gray-600">
-                <span className="font-medium">Total tasks: </span>
-                {column.reduce((sum, col) => sum + col.tasks.length, 0)}
-              </div>
-            </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end space-y-4 sm:space-y-0 mb-6">
+          
 
             <Dialog>
               <DialogTrigger>
-                <Button className="w-full sm:w-auto flex items-center gap-2">
+                <Button className="w-full sm:w-auto flex items-center gap-2 cursor-pointer">
                   <Plus />
                   Add task
                 </Button>
@@ -610,6 +649,7 @@ const BoardPage = () => {
                       name="title"
                       placeholder="Enter task title"
                       required
+                      className="focus-visible:outline-none focus-visible:ring-0"
                     />
                   </div>
                   <div className="space-y-2">
@@ -619,16 +659,10 @@ const BoardPage = () => {
                       name="description"
                       placeholder="Enter task description"
                       rows={3}
+                      className="focus-visible:outline-none focus-visible:ring-0"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Assignee</Label>
-                    <Input
-                      id="assignee"
-                      name="assignee"
-                      placeholder="Who should do this?"
-                    />
-                  </div>
+
                   <div className="space-y-2">
                     <Label>Priority</Label>
                     <Select name="priority" defaultValue="medium">
@@ -647,14 +681,14 @@ const BoardPage = () => {
                   </div>
                   <div className="space-y-2">
                     <Label>Due Date</Label>
-                    <Input type="date" id="dueDate" name="dueDate" />
+                    <Input type="date" id="dueDate" name="dueDate" className="focus-visible:outline-none focus-visible:ring-0" />
                   </div>
                   <div className="flex justify-between items-center mt-5">
                     <DialogClose asChild>
-                      <Button variant="outline">Cancel</Button>
+                      <Button variant="outline" className="cursor-pointer">Cancel</Button>
                     </DialogClose>
                     <DialogClose asChild>
-                      <Button type="submit">Create Task</Button>
+                      <Button type="submit" className="cursor-pointer">Create Task</Button>
                     </DialogClose>
                   </div>
                 </form>
@@ -689,7 +723,12 @@ const BoardPage = () => {
                   >
                     <div className="space-y-3">
                       {col.tasks.map((task, key) => (
-                        <SortableTask task={task} key={key} />
+                        <SortableTask
+                          key={task.id}
+                          task={task}
+                          setEditingTask={setEditingTask}
+                          setTaskDialogOpen={setTaskDialogOpen}
+                        />
                       ))}
                     </div>
                   </SortableContext>
@@ -699,7 +738,7 @@ const BoardPage = () => {
                 <Button
                   variant="outline"
                   onClick={() => setIsCreateColumn(true)}
-                  className="w-full h-30 border-dashed border-2 text-gray-500 hover:text-gray-700"
+                  className="cursor-pointer w-full h-23 border-dashed border-2 text-gray-500 hover:text-gray-700"
                 >
                   <Plus />
                   Add another list
@@ -799,6 +838,132 @@ const BoardPage = () => {
               </Button>
               <div>
                 <Button type="submit">Edit Column</Button>
+              </div>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {}
+      <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
+        <DialogContent
+          className="w-[95vw] max-w-106.25 mx-auto"
+          showCloseButton={false}
+        >
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+            <p className="text-sm text-gray-600">Edit the task on the board</p>
+          </DialogHeader>
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (editingTask) handleUpdateTask(editingTask);
+            }}
+          >
+            <div className="space-y-2">
+              <Label>Title</Label>
+              <Input
+                id="title"
+                name="title"
+                value={editingTask?.title || ""}
+                onChange={(e) =>
+                  setEditingTask((prev) =>
+                    prev ? { ...prev, title: e.target.value } : null,
+                  )
+                }
+                placeholder="Enter task title"
+                required
+                className="focus-visible:outline-none focus-visible:ring-0"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={editingTask?.description || ""}
+                onChange={(e) =>
+                  setEditingTask((prev) =>
+                    prev ? { ...prev, description: e.target.value } : null,
+                  )
+                }
+                placeholder="Enter task description"
+                rows={3}
+                className="focus-visible:outline-none focus-visible:ring-0"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Priority</Label>
+              <Select
+                name="priority"
+                value={editingTask?.priority || "medium"}
+                onValueChange={(value) =>
+                  setEditingTask((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          priority: value as "low" | "medium" | "high",
+                        }
+                      : null,
+                  )
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {["low", "medium", "high"].map((priority) => (
+                    <SelectItem key={priority} value={priority}>
+                      {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Due Date</Label>
+              <Input
+                type="date"
+                id="dueDate"
+                name="dueDate"
+                value={editingTask?.due_date || ""}
+                onChange={(e) =>
+                  setEditingTask((prev) =>
+                    prev ? { ...prev, due_date: e.target.value } : null,
+                  )
+                }
+                className="focus-visible:outline-none focus-visible:ring-0"
+              />
+            </div>
+
+            <div className="flex justify-between items-center mt-5">
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  className="bg-red-700 cursor-pointer hover:bg-red-800"
+                  onClick={async () => {
+                    if (editingTask) {
+                      try {
+                        await deleteTask(editingTask.id);
+
+                        setEditingTask(null);
+                        setTaskDialogOpen(false);
+                      } catch (err) {
+                        console.error("Task silinərkən xəta:", err);
+                      }
+                    }
+                  }}
+                >
+                  Delete Task
+                </Button>
+                <Button type="submit">Update Task</Button>
               </div>
             </div>
           </form>

@@ -209,10 +209,10 @@ export const taskServices = {
     .from("tasks")
     .update({
       ...updates,
-      updated_at: new Date().toISOString(),
+     
     })
     .eq("id", taskId)
-    .select()
+    .select("*")
     .single();
 
   if (error) throw error;
@@ -227,8 +227,8 @@ async deleteTask(
   const { error } = await supabase
     .from("tasks")
     .delete()
-    .eq("id", taskId);
-
+    .eq("id", taskId)
+;
   if (error) throw error;
 },
 

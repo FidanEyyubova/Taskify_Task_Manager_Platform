@@ -22,10 +22,10 @@ export interface Task {
   id: string;
   title: string;
   column_id: string;
-  description?: string;
+  description?: string | null;
   sort_order: number;
   created_at?: string;
-  due_date?: string;     
+  due_date?: string | null;     
   priority?: "low" | "medium" | "high";
 }
 
