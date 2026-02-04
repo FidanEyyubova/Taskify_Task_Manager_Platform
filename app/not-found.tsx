@@ -3,7 +3,6 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center bg-linear-to-br from-orange-50 via-amber-50 to-yellow-50 overflow-hidden px-4">
-      
       {}
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-orange-400/40 rounded-full blur-3xl" />
       <div className="absolute top-1/2 -right-32 w-96 h-96 bg-yellow-400/40 rounded-full blur-3xl" />
@@ -15,8 +14,8 @@ export default function NotFound() {
         </h1>
 
         <p className="text-gray-700 mb-8 text-lg">
-          Axtardığınız səhifə tapılmadı <br />
-          və ya artıq mövcud deyil.
+          The page you are looking for is not found <br />
+          or no longer exists.
         </p>
 
         <Link
@@ -25,8 +24,7 @@ export default function NotFound() {
           bg-black
           transition-all duration-300 shadow-lg hover:shadow-orange-400/40"
         >
-          Ana səhifəyə qayıt
-          <span className="text-xl">→</span>
+          Go to home page
         </Link>
       </div>
     </div>

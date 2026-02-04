@@ -19,12 +19,12 @@ const Home = () => {
         <div className="absolute top-1/3 -right-24 h-72 w-72 bg-orange-400/30 rounded-full blur-3xl" />
         <div className="relative z-10 max-w-3xl w-full">
           <h1 className="text-3xl sm:text-5xl font-bold text-gray-900">
-            <span className="text-[#FFA239]">Task</span>zen – Smart Task
+            <span className="text-[#FFA239]">Task</span>ify – Smart Task
             Management Made Simple
           </h1>
 
           <p className="mt-4 text-gray-600 text-base sm:text-lg max-w-xl mx-auto font-semibold">
-            Taskzen helps you organize your tasks, boost productivity, and stay
+            Taskify helps you organize your tasks, boost productivity, and stay
             focused every single day.
           </p>
 
@@ -53,7 +53,7 @@ const Home = () => {
               Work Smarter
             </h2>
             <p className="mt-2 text-gray-600 font-semibold">
-              Do more with Taskzen
+              Do more with Taskify
             </p>
           </div>
 
@@ -115,7 +115,7 @@ const Home = () => {
 
       <section className="px-4 py-10 bg-linear-to-r from-orange-600 to-orange-300 text-white text-center">
         <h2 className="text-xl sm:text-4xl font-semibold">
-          Get Started with Taskzen
+          Get Started with Taskify
         </h2>
       </section>
       <Footer />

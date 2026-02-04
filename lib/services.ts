@@ -193,46 +193,36 @@ export const taskServices = {
     return data;
   },
   async updateTask(
-  supabase: SupabaseClient,
-  taskId: string,
-  updates: Partial<{
-    title: string;
-    description: string | null;
-    assignee: string | null;
-    due_date: string | null;
-    priority: "low" | "medium" | "high";
-    sort_order: number;
-    column_id: string;
-  }>,
-): Promise<Task> {
-  const { data, error } = await supabase
-    .from("tasks")
-    .update({
-      ...updates,
-     
-    })
-    .eq("id", taskId)
-    .select("*")
-    .single();
+    supabase: SupabaseClient,
+    taskId: string,
+    updates: Partial<{
+      title: string;
+      description: string | null;
+      assignee: string | null;
+      due_date: string | null;
+      priority: "low" | "medium" | "high";
+      sort_order: number;
+      column_id: string;
+    }>,
+  ): Promise<Task> {
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        ...updates,
+      })
+      .eq("id", taskId)
+      .select("*")
+      .single();
 
-  if (error) throw error;
+    if (error) throw error;
 
-  return data;
-},
+    return data;
+  },
 
-async deleteTask(
-  supabase: SupabaseClient,
-  taskId: string,
-): Promise<void> {
-  const { error } = await supabase
-    .from("tasks")
-    .delete()
-    .eq("id", taskId)
-;
-  if (error) throw error;
-},
-
-
+  async deleteTask(supabase: SupabaseClient, taskId: string): Promise<void> {
+    const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+    if (error) throw error;
+  },
 };
 
 export const boardDataServices = {

@@ -8,7 +8,7 @@ const Footer = () => {
         {}
         <div className="flex items-center gap-2 text-black font-bold text-2xl">
           <Link href="/">
-            <span className="text-[#FFA239]">Task</span>zen
+            <span className="text-[#FFA239]">Task</span>ify
           </Link>
         </div>
         <p className="text-black text-center max-w-md">
@@ -44,7 +44,7 @@ const Footer = () => {
               <Github className="h-5 w-5" />
             </a>
             <a
-              href="mailto:info@taskzen.com"
+              href="mailto:info@taskify.com"
               className="hover:text-orange-400 transition-colors text-black"
             >
               <Mail className="h-5 w-5" />
@@ -54,7 +54,7 @@ const Footer = () => {
 
         {}
         <p className="text-gray-500 text-xs mt-3 text-center">
-          © {new Date().getFullYear()} Taskzen. All rights reserved.
+          © {new Date().getFullYear()} Taskify. All rights reserved.
         </p>
       </div>
     </footer>

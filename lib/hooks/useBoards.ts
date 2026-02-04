@@ -234,7 +234,6 @@ export function useBoard(boardId: string) {
     }
   }
 
-  
   async function updateColumn(columnId: string, title: string) {
     try {
       const updatedColumn = await columnServices.updateColumnTitle(
@@ -255,35 +254,31 @@ export function useBoard(boardId: string) {
     }
   }
 
-
   async function updateTask(taskId: string, updates: Partial<Task>) {
-  const previousColumns = [...column];
+    const previousColumns = [...column];
 
-  // 1. Optimistic update - İstifadəçi dərhal dəyişikliyi görsün
-  setColumn((prev) =>
-    prev.map((col) => ({
-      ...col,
-      tasks: col.tasks.map((t) =>
-        t.id === taskId ? { ...t, ...updates } : t
-      ),
-    }))
-  );
+    setColumn((prev) =>
+      prev.map((col) => ({
+        ...col,
+        tasks: col.tasks.map((t) =>
+          t.id === taskId ? { ...t, ...updates } : t,
+        ),
+      })),
+    );
 
-  try {
-    const updatedTask = await taskServices.updateTask(supabase!, taskId, updates);
-    
-    // 2. loadBoard() çağırmaq əvəzinə, sadəcə state-i gələn real data ilə tamamlamaq kifayətdir.
-    // Əgər loadBoard() çağırırsınızsa, aşağıdakı setColumn-a ehtiyac yoxdur.
-    // Amma ən yaxşısı budur:
-    return updatedTask;
-  } catch (err) {
-    // Xəta olarsa, dərhal əvvəlki vəziyyətə qaytar
-    setColumn(previousColumns);
-    throw err;
+    try {
+      const updatedTask = await taskServices.updateTask(
+        supabase!,
+        taskId,
+        updates,
+      );
+
+      return updatedTask;
+    } catch (err) {
+      setColumn(previousColumns);
+      throw err;
+    }
   }
-}
-
-
 
   async function deleteTask(taskId: string) {
     const previousColumns = [...column];

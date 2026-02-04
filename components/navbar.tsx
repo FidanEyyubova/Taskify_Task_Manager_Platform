@@ -1,11 +1,6 @@
 "use client";
 import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
-import {
-  ArrowRight,
-  CornerUpLeft,
-  Ellipsis,
-  Filter,
-} from "lucide-react";
+import { ArrowRight, CornerUpLeft, Ellipsis, Filter } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -29,7 +24,7 @@ const Navbar = ({
 }: Props) => {
   const pathname = usePathname();
   const { isSignedIn, user } = useUser();
-  
+
   const isDashboardPage = pathname === "/dashboard";
   const isBoardPage = pathname.startsWith("/boards");
   const hasFilters = filterCount > 0;
@@ -41,7 +36,7 @@ const Navbar = ({
           <div className="flex items-center space-x-2">
             <span className="text-xl sm:text-2xl font-bold">
               <Link href="/">
-                <span className="text-[#FFA239]">Task</span>zen
+                <span className="text-[#FFA239]">Task</span>ify
               </Link>
             </span>
           </div>
@@ -89,27 +84,29 @@ const Navbar = ({
             </div>
 
             <div className="flex items-center space-x-3 shrink-0">
-            {onFilterClick && (
-  <Button
-    variant="outline"
-    size="sm"
-    onClick={onFilterClick}
-    className={`text-xs sm:text-sm transition-colors h-9 cursor-pointer
-      ${hasFilters 
-        ? "bg-orange-400 border-orange-400 text-white hover:bg-orange-500 hover:text-white" 
-        : "hover:bg-gray-100 hover:text-black"
+              {onFilterClick && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onFilterClick}
+                  className={`text-xs sm:text-sm transition-colors h-9 cursor-pointer
+      ${
+        hasFilters
+          ? "bg-orange-400 border-orange-400 text-white hover:bg-orange-500 hover:text-white"
+          : "hover:bg-gray-100 hover:text-black"
       }`}
-  >
-    <Filter className={`h-3 w-3 sm:w-4 sm:h-4 ${hasFilters ? "text-white" : ""}`} />
-    <span className="ml-1">
-      Filter
-      {hasFilters && (
-        <span className="hidden sm:inline"> ({filterCount})</span>
-      )}
-    </span>
-  </Button>
-)}
-
+                >
+                  <Filter
+                    className={`h-3 w-3 sm:w-4 sm:h-4 ${hasFilters ? "text-white" : ""}`}
+                  />
+                  <span className="ml-1">
+                    Filter
+                    {hasFilters && (
+                      <span className="hidden sm:inline"> ({filterCount})</span>
+                    )}
+                  </span>
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -123,7 +120,7 @@ const Navbar = ({
         <div className="flex items-center space-x-2">
           <span className="text-xl sm:text-2xl font-bold">
             <Link href="/">
-              <span className="text-[#FFA239]">Task</span>zen
+              <span className="text-[#FFA239]">Task</span>ify
             </Link>
           </span>
         </div>
@@ -143,10 +140,14 @@ const Navbar = ({
           ) : (
             <div className="flex items-center space-x-2">
               <SignInButton>
-                <Button variant="ghost" size="sm" className="cursor-pointer">Sign In</Button>
+                <Button variant="ghost" size="sm" className="cursor-pointer">
+                  Sign In
+                </Button>
               </SignInButton>
               <SignUpButton>
-                <Button size="sm" className="cursor-pointer">Sign Up</Button>
+                <Button size="sm" className="cursor-pointer">
+                  Sign Up
+                </Button>
               </SignUpButton>
             </div>
           )}

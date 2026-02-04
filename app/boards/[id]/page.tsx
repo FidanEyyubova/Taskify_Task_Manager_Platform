@@ -609,10 +609,15 @@ const BoardPage = () => {
                   type="button"
                   variant={"outline"}
                   onClick={clearFilterTask}
+                  className="cursor-pointer"
                 >
                   Clear Filters
                 </Button>
-                <Button type="button" onClick={() => setFilterOpen(false)}>
+                <Button
+                  type="button"
+                  onClick={() => setFilterOpen(false)}
+                  className="cursor-pointer"
+                >
                   Apply Filters
                 </Button>
               </div>
@@ -622,15 +627,11 @@ const BoardPage = () => {
 
         <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end space-y-4 sm:space-y-0 mb-6">
-          
-
             <Dialog>
-              <DialogTrigger>
-                <Button className="w-full sm:w-auto flex items-center gap-2 cursor-pointer">
-                  <Plus />
-                  Add task
-                </Button>
-              </DialogTrigger>
+              <Button className="w-full sm:w-auto flex items-center gap-2 cursor-pointer">
+                <Plus />
+                Add task
+              </Button>
               <DialogContent
                 className="w-[95vw] max-w-106.25 mx-auto"
                 showCloseButton={false}
@@ -681,14 +682,23 @@ const BoardPage = () => {
                   </div>
                   <div className="space-y-2">
                     <Label>Due Date</Label>
-                    <Input type="date" id="dueDate" name="dueDate" className="focus-visible:outline-none focus-visible:ring-0" />
+                    <Input
+                      type="date"
+                      id="dueDate"
+                      name="dueDate"
+                      className="focus-visible:outline-none focus-visible:ring-0"
+                    />
                   </div>
                   <div className="flex justify-between items-center mt-5">
                     <DialogClose asChild>
-                      <Button variant="outline" className="cursor-pointer">Cancel</Button>
+                      <Button variant="outline" className="cursor-pointer">
+                        Cancel
+                      </Button>
                     </DialogClose>
                     <DialogClose asChild>
-                      <Button type="submit" className="cursor-pointer">Create Task</Button>
+                      <Button type="submit" className="cursor-pointer">
+                        Create Task
+                      </Button>
                     </DialogClose>
                   </div>
                 </form>
@@ -724,7 +734,7 @@ const BoardPage = () => {
                     <div className="space-y-3">
                       {col.tasks.map((task, key) => (
                         <SortableTask
-                          key={task.id}
+                          key={key}
                           task={task}
                           setEditingTask={setEditingTask}
                           setTaskDialogOpen={setTaskDialogOpen}
