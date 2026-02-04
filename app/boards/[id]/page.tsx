@@ -23,11 +23,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useBoard, useBoards } from "@/lib/hooks/useBoards";
 import { ColumnWithTasks, Task } from "@/lib/supabase/models";
-import { DialogTrigger } from "@radix-ui/react-dialog";
 import { Calendar, MoreHorizontal, Plus } from "lucide-react";
 
 import { useParams } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -45,11 +44,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 function DroppableColumn({
   column,
   children,
-  onCreateTask,
   onEditColumn,
 }: {
   column: ColumnWithTasks;
@@ -58,8 +58,14 @@ function DroppableColumn({
   onEditColumn?: (column: ColumnWithTasks) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
+   useEffect(() => {
+      AOS.init({
+        duration: 1000,
+        once: true,     
+      });
+    }, []);
   return (
-    <div ref={setNodeRef} className={`w-full lg:shrink-0 lg:w-80 `}>
+    <div ref={setNodeRef} className={`w-full lg:shrink-0 lg:w-80 `} data-aos="fade-down">
       <div
         className={`bg-white rounded-lg shadow-sm border transition-all relative ${
           isOver
@@ -129,8 +135,9 @@ function SortableTask({
         return "bg-yellow-500";
     }
   }
+ 
   return (
-    <div ref={setNodeRef} {...listeners} {...attributes} style={styles}>
+    <div ref={setNodeRef} {...listeners} {...attributes} style={styles} >
       <Card className="relative cursor-pointer hover:shadow-md transition-shadow">
         <CardContent className="p-3 sm:p-4">
           <div className="space-y-2 sm:space-y-3">
@@ -274,7 +281,6 @@ const BoardPage = () => {
       setEditingTask(null);
     } catch (err: any) {
       console.error("Update error:", err);
-      alert("Xəta baş verdi: " + (err.message || "Bilinməyən xəta"));
     }
   }
 
@@ -343,9 +349,7 @@ const BoardPage = () => {
       .flatMap((col) => col.tasks)
       .find((task) => task.id === taskId);
 
-    if (task) {
-      setActiveTask(task);
-    }
+    
   }
 
   function handleDragOver(event: DragOverEvent) {

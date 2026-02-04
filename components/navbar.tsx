@@ -4,8 +4,7 @@ import { ArrowRight, CornerUpLeft, Ellipsis, Filter } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useBoards } from "@/lib/hooks/useBoards";
-import { Badge } from "./ui/badge";
+
 
 interface Props {
   boardTitle?: string;

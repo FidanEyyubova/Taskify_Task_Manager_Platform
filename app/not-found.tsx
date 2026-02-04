@@ -9,7 +9,7 @@ export default function NotFound() {
 
       {}
       <div className="relative z-10 text-center">
-        <h1 className="text-7xl font-extrabold text-black bg-clip-text  mb-4 ">
+        <h1 className="text-7xl font-extrabold text-black bg-clip-text  mb-4 animate__animated animate__tada">
           404
         </h1>
 

@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import SupabaseProvider from "@/lib/supabase/SupabaseProvider";
+import "animate.css";
 
 export const metadata: any = {
   title: "Taskfiy App",

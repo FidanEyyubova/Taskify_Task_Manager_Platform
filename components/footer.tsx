@@ -1,4 +1,4 @@
-import { Puzzle, Twitter, Linkedin, Github, Mail } from "lucide-react";
+import {  Twitter, Linkedin, Github, Mail } from "lucide-react";
 import Link from "next/link";
 
 const Footer = () => {

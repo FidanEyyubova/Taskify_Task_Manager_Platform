@@ -6,8 +6,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
 import { Puzzle, CheckCircle, Zap, ArrowRight, Notebook } from "lucide-react";
 import Link from "next/link";
+import AOS from "aos";
+import "aos/dist/aos.css";
+import { useEffect } from "react";
+
+
+
 
 const Home = () => {
+  useEffect(() => {
+  AOS.init({
+    duration: 1000,
+    once: true,     
+  });
+}, []);
   const { isSignedIn, user } = useUser();
   return (
     <div className="min-h-screen flex flex-col">
@@ -17,7 +29,7 @@ const Home = () => {
         <div className="absolute inset-0 bg-linear-to-br from-orange-100 via-white to-orange-200" />
         <div className="absolute -top-24 -left-24 h-72 w-72 bg-orange-300/40 rounded-full blur-3xl" />
         <div className="absolute top-1/3 -right-24 h-72 w-72 bg-orange-400/30 rounded-full blur-3xl" />
-        <div className="relative z-10 max-w-3xl w-full">
+        <div className="relative z-10 max-w-3xl w-full animate__animated animate__backInLeft" >
           <h1 className="text-3xl sm:text-5xl font-bold text-gray-900">
             <span className="text-[#FFA239]">Task</span>ify – Smart Task
             Management Made Simple
@@ -57,7 +69,7 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4"  data-aos="fade-down">
             <Card
               className="transition-shadow duration-300 ease-in-out
     hover:shadow-lg hover:shadow-orange-200/40 cursor-pointer"

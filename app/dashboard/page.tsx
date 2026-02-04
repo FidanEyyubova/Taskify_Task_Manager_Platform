@@ -1,7 +1,6 @@
 "use client";
 import LoaderForPage from "@/components/loader";
 import Navbar from "@/components/navbar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,13 +11,12 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useBoard, useBoards } from "@/lib/hooks/useBoards";
+import { useBoards } from "@/lib/hooks/useBoards";
 import { Board } from "@/lib/supabase/models";
 import { useUser } from "@clerk/nextjs";
 import { Label } from "@radix-ui/react-label";
@@ -30,15 +28,14 @@ import {
   LayoutDashboard,
   LayoutGrid,
   List,
-  Loader2,
   Plus,
   Search,
   StickyNote,
-  Trash,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 const DashboardPage = () => {
   const { user } = useUser();
@@ -56,6 +53,12 @@ const DashboardPage = () => {
     ...board,
     taskCount: 0,
   }));
+   useEffect(() => {
+    AOS.init({
+      duration: 1000,
+      once: true,     
+    });
+  }, []);
 
   const filteredBoards = boardsWithTaskCount.filter((board: Board) => {
     const matchesSearch = board.title
@@ -129,10 +132,10 @@ const DashboardPage = () => {
             Here's what's happening with your boards today
           </p>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8 " data-aos="fade-down">
           <Card
             className=" transition-shadow duration-300 ease-in-out
-    hover:shadow-lg hover:shadow-orange-200/40 cursor-pointer"
+    hover:shadow-lg hover:shadow-orange-200/40 cursor-pointer "
           >
             <CardContent className="p-4 sm:p-6 ">
               <div className="flex items-center justify-between">
@@ -285,7 +288,7 @@ const DashboardPage = () => {
               No boards yet
             </div>
           ) : viewMode === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6" data-aos="fade-down">
               {filteredBoards.map((board, key) => (
                 <Link href={`/boards/${board.id}`} key={key}>
                   <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
@@ -353,7 +356,7 @@ const DashboardPage = () => {
           ) : (
             <div>
               {filteredBoards.map((board, key) => (
-                <div className={key > 0 ? "mt-4" : ""} key={key}>
+                <div className={key > 0 ? "mt-4" : ""} key={key} data-aos="fade-down">
                   <Link href={`/boards/${board.id}`} key={board.id}>
                     <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
                       <CardHeader className="pb-3">
