@@ -16,9 +16,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useBoards } from "@/lib/hooks/useBoards";
-import { Board } from "@/lib/supabase/models";
-import { useUser } from "@clerk/nextjs";
 import { Label } from "@radix-ui/react-label";
 import {
   ChartColumn,
@@ -33,66 +30,36 @@ import {
   StickyNote,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { boardFunctions } from "@/lib/functions/boardFunctions";
 
 const DashboardPage = () => {
-  const { user } = useUser();
-  const { createBoard, boards, loading, error } = useBoards();
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
-  const [filters, setFilters] = useState({
-    search: "",
-    dateRange: {
-      start: null as string | null,
-      end: null as string | null,
-    },
-  });
-  const boardsWithTaskCount = boards.map((board: Board) => ({
-    ...board,
-    taskCount: 0,
-  }));
-   useEffect(() => {
+  const {
+    user,
+    loading,
+    error,
+    viewMode,
+    setViewMode,
+    filteredBoards,
+    boards,
+    totalTasksCount,
+    recentActivityCount,
+    handleCreateBoard,
+    setFilters,
+    isFilterOpenBoard,
+    setIsFilterOpenBoard,
+    clearFiltersBoard,
+    activeFilterCountBoard,
+  } = boardFunctions();
+
+  useEffect(() => {
     AOS.init({
       duration: 1000,
-      once: true,     
+      once: true,
     });
   }, []);
-
-  const filteredBoards = boardsWithTaskCount.filter((board: Board) => {
-    const matchesSearch = board.title
-      .toLowerCase()
-      .includes(filters.search.toLowerCase());
-
-    const matchesDateRange =
-      (!filters.dateRange.start ||
-        new Date(board.created_at) >= new Date(filters.dateRange.start)) &&
-      (!filters.dateRange.end ||
-        new Date(board.created_at) <= new Date(filters.dateRange.end));
-
-    return matchesSearch && matchesDateRange;
-  });
-
-  function clearFilters() {
-    setFilters({
-      search: "",
-      dateRange: {
-        start: null as string | null,
-        end: null as string | null,
-      },
-    });
-  }
-
-  const handleCreateBoard = async () => {
-    await createBoard({ title: "New Board" });
-  };
-  const totalTasksCount = boards.reduce((acc, board) => {
-    const boardTasksCount =
-      board.columns?.reduce((sum, col) => sum + (col.tasks?.length || 0), 0) ||
-      0;
-    return acc + boardTasksCount;
-  }, 0);
 
   if (loading) {
     return (
@@ -113,12 +80,6 @@ const DashboardPage = () => {
     );
   }
 
-  const activeFilterCount = [
-    filters.search !== "",
-    filters.dateRange.start !== null,
-    filters.dateRange.end !== null,
-  ].filter(Boolean).length;
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -132,7 +93,10 @@ const DashboardPage = () => {
             Here's what's happening with your boards today
           </p>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8 " data-aos="fade-down">
+        <div
+          className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8 "
+          data-aos="fade-down"
+        >
           <Card
             className=" transition-shadow duration-300 ease-in-out
     hover:shadow-lg hover:shadow-orange-200/40 cursor-pointer "
@@ -223,7 +187,6 @@ const DashboardPage = () => {
           </Card>
         </div>
 
-        {}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
             <div>
@@ -252,17 +215,18 @@ const DashboardPage = () => {
                 </Button>
               </div>
               <Button
-                variant={activeFilterCount > 0 ? "default" : "outline"}
+                variant={activeFilterCountBoard > 0 ? "default" : "outline"}
                 size="sm"
-                onClick={() => setIsFilterOpen(true)}
+                onClick={() => setIsFilterOpenBoard(true)}
                 className={
-                  activeFilterCount > 0
+                  activeFilterCountBoard > 0
                     ? "bg-orange-400 hover:bg-orange-400 text-white border-orange-400 h-9 cursor-pointer"
                     : "h-9 cursor-pointer"
                 }
               >
                 <Filter className="h-4 w-4" />
-                Filter {activeFilterCount > 0 && `(${activeFilterCount})`}
+                Filter{" "}
+                {activeFilterCountBoard > 0 && `(${activeFilterCountBoard})`}
               </Button>
               <Button onClick={handleCreateBoard} className="cursor-pointer">
                 <Plus className="h-4 w-4 " />
@@ -288,7 +252,10 @@ const DashboardPage = () => {
               No boards yet
             </div>
           ) : viewMode === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6" data-aos="fade-down">
+            <div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+              data-aos="fade-down"
+            >
               {filteredBoards.map((board, key) => (
                 <Link href={`/boards/${board.id}`} key={key}>
                   <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
@@ -356,7 +323,11 @@ const DashboardPage = () => {
           ) : (
             <div>
               {filteredBoards.map((board, key) => (
-                <div className={key > 0 ? "mt-4" : ""} key={key} data-aos="fade-down">
+                <div
+                  className={key > 0 ? "mt-4" : ""}
+                  key={key}
+                  data-aos="fade-down"
+                >
                   <Link href={`/boards/${board.id}`} key={board.id}>
                     <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
                       <CardHeader className="pb-3">
@@ -424,7 +395,12 @@ const DashboardPage = () => {
           )}
         </div>
       </main>
-      <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+
+
+      
+
+      {/* -------- THIS FOR FILTERING BOARD -------- */}
+      <Dialog open={isFilterOpenBoard} onOpenChange={setIsFilterOpenBoard}>
         <DialogContent className="w-[95vw] max-w-106.25 mx-auto">
           <DialogHeader>
             <DialogTitle>Filter Boards</DialogTitle>
@@ -483,14 +459,14 @@ const DashboardPage = () => {
             <div className="flex flex-col sm:flex-row justify-between pt-4 space-y-2 sm:space-y-0 sm:space-x-2">
               <Button
                 variant="outline"
-                onClick={clearFilters}
+                onClick={clearFiltersBoard}
                 className="cursor-pointer"
               >
                 Clear Filters
               </Button>
 
               <Button
-                onClick={() => setIsFilterOpen(false)}
+                onClick={() => setIsFilterOpenBoard(false)}
                 className="cursor-pointer"
               >
                 Apply Filters

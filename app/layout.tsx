@@ -4,7 +4,7 @@ import SupabaseProvider from "@/lib/supabase/SupabaseProvider";
 import "animate.css";
 
 export const metadata: any = {
-  title: "Taskfiy App",
+  title: "Taskify",
   description: "Create and manage tasks with Taskify",
   icon: "/icon.png",
 };

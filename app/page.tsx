@@ -20,7 +20,7 @@ const Home = () => {
     once: true,     
   });
 }, []);
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn } = useUser();
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />

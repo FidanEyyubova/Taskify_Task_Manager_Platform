@@ -7,7 +7,7 @@ import {
   taskServices,
 } from "../services";
 import { useEffect, useState } from "react";
-import { Board, Column, ColumnWithTasks, Task } from "../supabase/models";
+import { Board, ColumnWithTasks, Task } from "../supabase/models";
 import { useSupabase } from "../supabase/SupabaseProvider";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
@@ -80,10 +80,15 @@ export function useBoards() {
   return { createBoard, loading, error, boards, setBoards, deleteBoard };
 }
 
+
+
+
+
+
+
 export function useBoard(boardId: string) {
   const { user } = useUser();
   const { supabase } = useSupabase();
-  const route = useRouter();
   const [board, setBoard] = useState<Board | null>(null);
   const [column, setColumn] = useState<ColumnWithTasks[]>([]);
   const [loading, setLoading] = useState(true);

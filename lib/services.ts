@@ -77,6 +77,12 @@ export const boardServices = {
   },
 };
 
+
+
+
+
+
+
 export const columnServices = {
   async getColumns(
     supabase: SupabaseClient,
@@ -134,6 +140,10 @@ export const columnServices = {
     return data;
   },
 };
+
+
+
+
 
 export const taskServices = {
   async getTaskByBoard(
@@ -224,6 +234,8 @@ export const taskServices = {
     if (error) throw error;
   },
 };
+
+
 
 export const boardDataServices = {
   async getBoardWithColumns(supabase: SupabaseClient, boardId: string) {

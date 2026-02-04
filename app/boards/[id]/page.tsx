@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,17 +28,7 @@ import { Calendar, MoreHorizontal, Plus } from "lucide-react";
 
 import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import {
-  DndContext,
-  DragEndEvent,
-  DragOverEvent,
-  DragStartEvent,
-  PointerSensor,
-  rectIntersection,
-  useDroppable,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
+import { DndContext, rectIntersection, useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
   useSortable,
@@ -46,7 +37,15 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { useBoardDnd } from "@/lib/dnd/boardDnd";
+import { useFilters } from "@/lib/filters/useFilters";
+import { boardFunctions } from "@/lib/functions/boardFunctions";
+import { columnFunctions } from "@/lib/functions/columnFunctions";
+import { taskFunctions } from "@/lib/functions/taskFunctions";
 
+{
+  /*!! ---------THIS FOR COLUMNS SECTION -------- !!*/
+}
 function DroppableColumn({
   column,
   children,
@@ -58,14 +57,18 @@ function DroppableColumn({
   onEditColumn?: (column: ColumnWithTasks) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
-   useEffect(() => {
-      AOS.init({
-        duration: 1000,
-        once: true,     
-      });
-    }, []);
+  useEffect(() => {
+    AOS.init({
+      duration: 1000,
+      once: true,
+    });
+  }, []);
   return (
-    <div ref={setNodeRef} className={`w-full lg:shrink-0 lg:w-80 `} data-aos="fade-down">
+    <div
+      ref={setNodeRef}
+      className={`w-full lg:shrink-0 lg:w-80 `}
+      data-aos="fade-down"
+    >
       <div
         className={`bg-white rounded-lg shadow-sm border transition-all relative ${
           isOver
@@ -101,6 +104,9 @@ function DroppableColumn({
   );
 }
 
+{
+  /*!! ---------THIS FOR TASK SECTION -------- !!*/
+}
 function SortableTask({
   task,
   setEditingTask,
@@ -135,9 +141,9 @@ function SortableTask({
         return "bg-yellow-500";
     }
   }
- 
+
   return (
-    <div ref={setNodeRef} {...listeners} {...attributes} style={styles} >
+    <div ref={setNodeRef} {...listeners} {...attributes} style={styles}>
       <Card className="relative cursor-pointer hover:shadow-md transition-shadow">
         <CardContent className="p-3 sm:p-4">
           <div className="space-y-2 sm:space-y-3">
@@ -190,8 +196,6 @@ function SortableTask({
 const BoardPage = () => {
   const { id } = useParams<{ id: string }>();
   const {
-    board,
-    updateBoard,
     column,
     createRealTask,
     moveTask,
@@ -205,268 +209,57 @@ const BoardPage = () => {
 
   const { deleteBoard } = useBoards();
 
-  const [editTitle, setEditTitle] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newColor, setNewColor] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [isCreateColumn, setIsCreateColumn] = useState(false);
-  const [newColumnTitle, setNewColumnTitle] = useState("");
-  const [editingColumnTitle, setEditingColumnTitle] = useState("");
   const [activeTask, setActiveTask] = useState<Task | null>(null);
-  const [editingColumn, setEditingColumn] = useState<ColumnWithTasks | null>(
-    null,
-  );
-  const [taskDialogOpen, setTaskDialogOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-
-  const [filterTask, setFilterTask] = useState({
-    priority: [] as string[],
-    assignee: [] as string[],
-    dueDate: null as string | null,
-  });
-
-  function handleFilterChange(
-    type: "priority" | "assignee" | "dueDate",
-    value: string | string[] | null,
-  ) {
-    setFilterTask((prev) => ({
-      ...prev,
-      [type]: value,
-    }));
-  }
-
-  function clearFilterTask() {
-    setFilterTask({
-      priority: [] as string[],
-      assignee: [] as string[],
-      dueDate: null as string | null,
+  const { sensors, handleDragStart, handleDragOver, handleDragEnd } =
+    useBoardDnd({
+      columns: column,
+      setColumns: setColumn,
+      moveTask,
+      setActiveTask,
     });
-  }
+  const {
+    filterTask,
+    filterOpen,
+    setFilterOpen,
+    filteredColumns,
+    handleFilterChange,
+    clearFilterTask,
+    activeFilterCount,
+  } = useFilters(column);
 
-  const filteredColumns = column.map((column) => ({
-    ...column,
-    tasks: column.tasks.filter((task) => {
-      if (
-        filterTask.priority.length > 0 &&
-        (!task.priority || !filterTask.priority.includes(task.priority))
-      ) {
-        return false;
-      }
+  const {
+    board,
+    editTitle,
+    setEditTitle,
+    newTitle,
+    setNewTitle,
+    newColor,
+    setNewColor,
+    handleUpdateBoard,
+  } = boardFunctions();
 
-      if (filterTask.dueDate && task.due_date) {
-        const taskDate = new Date(task.due_date).toDateString();
-        const filterDate = new Date(filterTask.dueDate).toDateString();
+  const {
+    isCreateColumn,
+    setIsCreateColumn,
+    newColumnTitle,
+    setNewColumnTitle,
+    editingColumn,
+    setEditingColumn,
+    editingColumnTitle,
+    setEditingColumnTitle,
+    handleCreateColumn,
+    handleUpdateColumn,
+    handleEditColumn,
+  } = columnFunctions(createColumn, updateColumn, deleteColumn);
 
-        if (taskDate !== filterDate) {
-          return false;
-        }
-      }
-
-      return true;
-    }),
-  }));
-
-  async function handleUpdateTask(task: Task) {
-    if (!task) return;
-
-    try {
-      await updateTask(task.id, {
-        title: task.title,
-        description: task.description ?? null,
-        priority: task.priority,
-        due_date: task.due_date ?? null,
-      });
-
-      setTaskDialogOpen(false);
-      setEditingTask(null);
-    } catch (err: any) {
-      console.error("Update error:", err);
-    }
-  }
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-  );
-
-  async function handleUpdateBoard(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!board) return;
-
-    try {
-      await updateBoard(board.id, {
-        title: newTitle.trim() || board.title,
-        color: newColor || board.color,
-      });
-      setEditTitle(false);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  async function createTask(taskData: {
-    title: string;
-    description?: string;
-    assignee?: string;
-    dueDate?: string;
-    priority: "low" | "medium" | "high";
-  }) {
-    const targetColumn = column[0];
-    if (!targetColumn) throw new Error("No column available");
-
-    await createRealTask(targetColumn.id, taskData);
-  }
-
-  async function handleColumnTaskCreate(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    const formData = new FormData(e.currentTarget);
-    const taskData = {
-      title: (formData.get("title") as string)?.trim() || "",
-      description: (formData.get("description") as string) || undefined,
-      assignee: (formData.get("assignee") as string) || undefined,
-      dueDate: (formData.get("dueDate") as string) || undefined,
-      priority:
-        (formData.get("priority") as "low" | "medium" | "high") || "medium",
-    };
-
-    if (!taskData.title) return;
-
-    try {
-      await createTask(taskData);
-      e.currentTarget.reset();
-    } catch (err) {
-      console.error("Error creating task:", err);
-    }
-  }
-
-  function handleDragStart(event: DragStartEvent) {
-    const taskId = event.active.id as string;
-    const task = column
-      .flatMap((col) => col.tasks)
-      .find((task) => task.id === taskId);
-
-    
-  }
-
-  function handleDragOver(event: DragOverEvent) {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = active.id as string;
-    const overId = over.id as string;
-
-    const sourceColumn = column.find((col) =>
-      col.tasks.some((task) => task.id === activeId),
-    );
-
-    const targetColumn = column.find((col) =>
-      col.tasks.some((task) => task.id === overId),
-    );
-
-    if (!sourceColumn || !targetColumn) return;
-
-    if (sourceColumn.id === targetColumn.id) {
-      const activeIndex = sourceColumn.tasks.findIndex(
-        (task) => task.id === activeId,
-      );
-
-      const overIndex = targetColumn.tasks.findIndex(
-        (task) => task.id === overId,
-      );
-
-      if (activeIndex !== overIndex) {
-        setColumn((prev: ColumnWithTasks[]) => {
-          const newColumns = [...prev];
-          const column = newColumns.find((col) => col.id === sourceColumn.id);
-          if (column) {
-            const tasks = [...column.tasks];
-            const [removed] = tasks.splice(activeIndex, 1);
-            tasks.splice(overIndex, 0, removed);
-            column.tasks = tasks;
-          }
-          return newColumns;
-        });
-      }
-    }
-  }
-
-  async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over) return;
-
-    const taskId = active.id as string;
-    const overId = over.id as string;
-
-    const targetColumn = column.find((col) => col.id === overId);
-    if (targetColumn) {
-      const sourceColumn = column.find((col) =>
-        col.tasks.some((task) => task.id === taskId),
-      );
-
-      if (sourceColumn && sourceColumn.id !== targetColumn.id) {
-        await moveTask(taskId, targetColumn.id, targetColumn.tasks.length);
-      }
-    } else {
-      const sourceColumn = column.find((col) =>
-        col.tasks.some((task) => task.id === taskId),
-      );
-
-      const targetColumn = column.find((col) =>
-        col.tasks.some((task) => task.id === overId),
-      );
-
-      if (sourceColumn && targetColumn) {
-        const oldIndex = sourceColumn.tasks.findIndex(
-          (task) => task.id === taskId,
-        );
-
-        const newIndex = targetColumn.tasks.findIndex(
-          (task) => task.id === overId,
-        );
-
-        if (oldIndex !== newIndex) {
-          await moveTask(taskId, targetColumn.id, newIndex);
-        }
-      }
-    }
-  }
-
-  async function handleCreateColumn(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (!newColumnTitle.trim()) return;
-
-    await createColumn(newColumnTitle.trim());
-
-    setNewColumnTitle("");
-    setIsCreateColumn(false);
-  }
-
-  async function handleUpdateColumn(e: React.FormEvent) {
-    e.preventDefault();
-
-    if (!editingColumnTitle.trim() || !editingColumn) return;
-
-    await updateColumn(editingColumn.id, editingColumnTitle.trim());
-
-    setEditingColumnTitle("");
-    setEditingColumn(null);
-  }
-
-  function handleEditColumn(column: ColumnWithTasks) {
-    setEditingColumn(column);
-    setEditingColumnTitle(column.title);
-  }
-
-  const activeFilterCount = [
-    filterTask.priority.length > 0,
-    filterTask.assignee.length > 0,
-    filterTask.dueDate !== null,
-  ].filter(Boolean).length;
+  const {
+    taskDialogOpen,
+    setTaskDialogOpen,
+    editingTask,
+    setEditingTask,
+    handleColumnTaskCreate,
+    handleUpdateTask,
+  } = taskFunctions(column, createRealTask, updateTask, deleteTask);
 
   return (
     <>
@@ -483,6 +276,10 @@ const BoardPage = () => {
           filterCount={activeFilterCount}
         />
 
+
+
+
+        {/*!! ---------THIS FOR EDITING BOARDS-------- !!*/}
         <Dialog open={editTitle} onOpenChange={setEditTitle}>
           <DialogContent
             className="w-[95vw] max-w-106.25 mx-auto"
@@ -560,6 +357,114 @@ const BoardPage = () => {
           </DialogContent>
         </Dialog>
 
+
+
+
+        {/*!! ---------THIS FOR CREATE COLUMN -------- !!*/}
+        <Dialog open={isCreateColumn} onOpenChange={setIsCreateColumn}>
+          <DialogContent
+            className="w-[95vw] max-w-106.25 mx-auto"
+            showCloseButton={false}
+          >
+            <DialogHeader>
+              <DialogTitle>Create New Column</DialogTitle>
+              <p className="text-sm text-gray-600">
+                Add new column to organuze your tasks
+              </p>
+            </DialogHeader>
+            <form className="space-y-4" onSubmit={handleCreateColumn}>
+              <div className="space-y-2">
+                <Label>Column Title</Label>
+                <Input
+                  id="columnTitle"
+                  value={newColumnTitle}
+                  onChange={(e) => setNewColumnTitle(e.target.value)}
+                  className="focus-visible:outline-none focus-visible:ring-0"
+                  placeholder="Enter column title..."
+                />
+              </div>
+              <div className="space-y-2  flex justify-end gap-2">
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button type="submit">Create Column</Button>
+                </DialogClose>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+
+
+        {/*!! ---------THIS FOR EDITING COLUMN -------- !!*/}
+        <Dialog
+          open={!!editingColumn}
+          onOpenChange={(open) => {
+            if (!open) setEditingColumn(null);
+          }}
+        >
+          <DialogContent className="w-[95vw] max-w-106.25 mx-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Column</DialogTitle>
+              <p className="text-sm text-gray-600">
+                Update the title of your column
+              </p>
+            </DialogHeader>
+            <form className="space-y-4" onSubmit={handleUpdateColumn}>
+              <div className="space-y-2">
+                <Label>Column Title</Label>
+                <Input
+                  id="columnTitle"
+                  value={editingColumnTitle}
+                  onChange={(e) => setEditingColumnTitle(e.target.value)}
+                  placeholder="Enter column title..."
+                  required
+                />
+              </div>
+              <div className="space-x-2 flex justify-end">
+                <Button
+                  type="button"
+                  className="bg-red-700 cursor-pointer hover:bg-red-700"
+                  onClick={async () => {
+                    if (editingColumn) {
+                      try {
+                        await deleteColumn(editingColumn.id);
+
+                        setEditingColumn(null);
+                        setEditingColumnTitle("");
+                      } catch (err) {}
+                    }
+                  }}
+                >
+                  Delete Column
+                </Button>
+
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setEditingColumn(null);
+                    setEditingColumnTitle("");
+                    setEditingColumn(null);
+                  }}
+                  variant="outline"
+                >
+                  Cancel
+                </Button>
+                <div>
+                  <Button type="submit">Edit Column</Button>
+                </div>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+
+
+
+        {/*!! ---------THIS FOR FILTERING TASKS -------- !!*/}
         <Dialog open={filterOpen} onOpenChange={setFilterOpen}>
           <DialogContent className="w-[95vw] max-w-106.25 mx-auto">
             <DialogHeader>
@@ -629,13 +534,19 @@ const BoardPage = () => {
           </DialogContent>
         </Dialog>
 
+
+
+
+        {/*!! ---------THIS FOR ADD TASKS -------- !!*/}
         <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end space-y-4 sm:space-y-0 mb-6">
             <Dialog>
-              <Button className="w-full sm:w-auto flex items-center gap-2 cursor-pointer">
-                <Plus />
-                Add task
-              </Button>
+              <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto flex items-center gap-2 cursor-pointer">
+                  <Plus />
+                  Add task
+                </Button>
+              </DialogTrigger>
               <DialogContent
                 className="w-[95vw] max-w-106.25 mx-auto"
                 showCloseButton={false}
@@ -710,12 +621,16 @@ const BoardPage = () => {
             </Dialog>
           </div>
 
+
+
+
+          {/*!! ---------THIS DRAG AND DROP TASKS -------- !!*/}
           <DndContext
             sensors={sensors}
             collisionDetection={rectIntersection}
             onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
             onDragMove={handleDragOver}
+            onDragEnd={handleDragEnd}
           >
             <div
               className="flex flex-col lg:flex-row lg:space-x-6 lg:overflow-x-auto 
@@ -762,103 +677,11 @@ const BoardPage = () => {
           </DndContext>
         </main>
       </div>
-      <Dialog open={isCreateColumn} onOpenChange={setIsCreateColumn}>
-        <DialogContent
-          className="w-[95vw] max-w-106.25 mx-auto"
-          showCloseButton={false}
-        >
-          <DialogHeader>
-            <DialogTitle>Create New Column</DialogTitle>
-            <p className="text-sm text-gray-600">
-              Add new column to organuze your tasks
-            </p>
-          </DialogHeader>
-          <form className="space-y-4" onSubmit={handleCreateColumn}>
-            <div className="space-y-2">
-              <Label>Column Title</Label>
-              <Input
-                id="columnTitle"
-                value={newColumnTitle}
-                onChange={(e) => setNewColumnTitle(e.target.value)}
-                className="focus-visible:outline-none focus-visible:ring-0"
-                placeholder="Enter column title..."
-              />
-            </div>
-            <div className="space-y-2  flex justify-end gap-2">
-              <DialogClose asChild>
-                <Button type="button" variant="outline">
-                  Cancel
-                </Button>
-              </DialogClose>
-              <DialogClose asChild>
-                <Button type="submit">Create Column</Button>
-              </DialogClose>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-      <Dialog
-        open={!!editingColumn}
-        onOpenChange={(open) => {
-          if (!open) setEditingColumn(null);
-        }}
-      >
-        <DialogContent className="w-[95vw] max-w-106.25 mx-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Column</DialogTitle>
-            <p className="text-sm text-gray-600">
-              Update the title of your column
-            </p>
-          </DialogHeader>
-          <form className="space-y-4" onSubmit={handleUpdateColumn}>
-            <div className="space-y-2">
-              <Label>Column Title</Label>
-              <Input
-                id="columnTitle"
-                value={editingColumnTitle}
-                onChange={(e) => setEditingColumnTitle(e.target.value)}
-                placeholder="Enter column title..."
-                required
-              />
-            </div>
-            <div className="space-x-2 flex justify-end">
-              <Button
-                type="button"
-                className="bg-red-700 cursor-pointer hover:bg-red-700"
-                onClick={async () => {
-                  if (editingColumn) {
-                    try {
-                      await deleteColumn(editingColumn.id);
 
-                      setEditingColumn(null);
-                      setEditingColumnTitle("");
-                    } catch (err) {}
-                  }
-                }}
-              >
-                Delete Column
-              </Button>
 
-              <Button
-                type="button"
-                onClick={() => {
-                  setEditingColumn(null);
-                  setEditingColumnTitle("");
-                  setEditingColumn(null);
-                }}
-                variant="outline"
-              >
-                Cancel
-              </Button>
-              <div>
-                <Button type="submit">Edit Column</Button>
-              </div>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
 
-      {}
+
+      {/*!! ---------THIS FOR TASK EDITING -------- !!*/}
       <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
         <DialogContent
           className="w-[95vw] max-w-106.25 mx-auto"
