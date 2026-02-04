@@ -254,7 +254,7 @@ const DashboardPage = () => {
           ) : viewMode === "grid" ? (
             <div
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
-              data-aos="fade-down"
+              
             >
               {filteredBoards.map((board, key) => (
                 <Link href={`/boards/${board.id}`} key={key}>
@@ -326,7 +326,7 @@ const DashboardPage = () => {
                 <div
                   className={key > 0 ? "mt-4" : ""}
                   key={key}
-                  data-aos="fade-down"
+                  
                 >
                   <Link href={`/boards/${board.id}`} key={board.id}>
                     <Card className="hover:shadow-lg transition-shadow cursor-pointer group">

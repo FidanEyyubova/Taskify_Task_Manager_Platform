@@ -67,7 +67,7 @@ function DroppableColumn({
     <div
       ref={setNodeRef}
       className={`w-full lg:shrink-0 lg:w-80 `}
-      data-aos="fade-down"
+      
     >
       <div
         className={`bg-white rounded-lg shadow-sm border transition-all relative ${
